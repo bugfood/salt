@@ -112,6 +112,11 @@ def master_id():
 
 
 @pytest.fixture(scope="session")
+def salt_master_extra_config_overrides():
+    return {}
+
+
+@pytest.fixture(scope="session")
 def salt_master_factory(
     request,
     salt_factories,
@@ -131,6 +136,7 @@ def salt_master_factory(
     salt_netapi_account_factory,
     salt_eauth_account_factory,
     salt_auto_account_factory,
+    salt_master_extra_config_overrides,
 ):
     root_dir = salt_factories.get_root_dir_for_daemon(master_id)
     conf_dir = root_dir / "conf"
@@ -271,6 +277,8 @@ def salt_master_factory(
             },
         }
     )
+
+    config_overrides.update(salt_master_extra_config_overrides)
 
     # Let's copy over the test cloud config files and directories into the running master config directory
     for entry in os.listdir(RUNTIME_VARS.CONF_DIR):

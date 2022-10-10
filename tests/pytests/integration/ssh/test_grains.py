@@ -1,4 +1,5 @@
 import pytest
+import sys
 
 import salt.utils.platform
 
@@ -6,6 +7,26 @@ pytestmark = [
     pytest.mark.slow_test,
     pytest.mark.skip_on_windows(reason="salt-ssh not available on Windows"),
 ]
+
+
+@pytest.fixture(scope="module")
+def salt_ssh_cli(salt_master, salt_ssh_roster_file, sshd_config_dir):
+    """
+    The ``salt-ssh`` CLI as a fixture against the running master
+    """
+    assert salt_master.is_running()
+    print(salt_master, file=sys.stderr)
+    cf = salt_master.config_file
+    with open(cf) as fh:
+        print(fh.read(), file=sys.stderr)
+
+    return salt_master.salt_ssh_cli(
+        timeout=180,
+        roster_file=salt_ssh_roster_file,
+        target_host="localhost",
+        client_key=str(sshd_config_dir / "client_key"),
+        base_script_args=["--ignore-host-keys"],
+    )
 
 
 def test_grains_id(salt_ssh_cli):
